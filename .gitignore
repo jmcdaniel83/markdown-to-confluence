@@ -1,0 +1,30 @@
+# =============================================================================
+# Essential .gitignore for Markdown to Confluence Converter
+# =============================================================================
+
+# Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.env
+.venv/
+venv/
+
+# Configuration files with sensitive data
+# Contains API tokens and credentials - NEVER commit this!
+confluence_config.py
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log 
