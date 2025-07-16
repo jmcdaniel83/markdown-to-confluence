@@ -135,9 +135,8 @@ The setup will:
 
 ## Security Notes
 
-- Configuration files contain sensitive API tokens
-- The `confluence_config.json` file is automatically added to `.gitignore`
-- Never commit configuration files to version control
+- The `confluence_config.json` file contains sensitive API tokens and credentials
+- Never commit `confluence_config.json` to version control
 - Keep your API token secure and rotate it periodically
 
 ## Troubleshooting

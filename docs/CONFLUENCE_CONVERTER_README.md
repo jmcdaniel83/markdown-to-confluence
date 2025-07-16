@@ -116,13 +116,34 @@ python confluence_config.py --files *.md --parent-page "Project Documentation"
 
 ```
 your-project/
-├── confluence_markdown_converter.py    # Main converter script
-├── confluence_config.py               # Configuration and setup script
-├── requirements.txt                   # Python dependencies
-├── confluence_config.json            # Your credentials (created after setup)
-├── README.md                         # Your markdown files
-├── DEPLOYMENT.md
-└── CONFLUENCE_CONVERTER_README.md    # This file
+├── confluence_markdown_converter.py  # Main converter script
+├── confluence_config.py              # Configuration management (safe to commit)
+├── confluence_config.json            # Your credentials (DO NOT COMMIT)
+├── requirements.txt                  # Python dependencies
+├── requirements-minimal.txt          # Minimal dependencies
+├── README.md                         # Project documentation
+├── LICENSE                           # Apache 2.0 license
+├── .gitignore                        # Git ignore rules
+├── .venv/                            # Virtual environment (not tracked)
+├── docs/                             # Documentation
+│   ├── CONFLUENCE_CONVERTER_README.md # This file
+│   ├── CONFIG_TESTER_README.md        # Configuration testing guide
+│   └── example_comprehensive.md       # Example markdown file
+├── scripts/                         # Utility scripts
+│   ├── convert_pva_docs.sh          # Bash automation script (DO NOT COMMIT)
+│   ├── adjust_headers.py            # Header adjustment utility
+│   └── add_separators.py            # Separator addition utility
+└── tests/                           # Test suite
+    ├── test_confluence_config.py     # Configuration testing
+    ├── test_confluence_connection.py # API connection tests
+    ├── test_urls.py                  # URL validation tests
+    ├── test_code_block_conversion.py # Code block conversion tests
+    ├── test_math_conversion.py       # Math conversion tests
+    ├── test_strikethrough.py         # Strikethrough tests
+    ├── test_definition_lists.py      # Definition list tests
+    ├── test_placeholders.py          # Placeholder tests
+    ├── test_comprehensive_strikethrough.py # Comprehensive tests
+    └── debug_code_block.py          # Debug utilities
 ```
 
 ## Supported Markdown Features
@@ -153,7 +174,9 @@ The `confluence_config.json` file stores your credentials securely:
 }
 ```
 
-⚠️ **Security Note**: Keep this file secure and don't commit it to version control!
+⚠️ **Security Note**:
+- **`confluence_config.json`** contains sensitive API tokens and credentials - never commit this file to version control!
+- The `confluence_config.json` file is automatically added to `.gitignore`
 
 ## Troubleshooting
 
@@ -247,4 +270,4 @@ For issues or questions:
 1. Check the troubleshooting section above
 2. Verify your Confluence API permissions
 3. Test with a simple markdown file first
-4. Check the Confluence REST API documentation for reference 
+4. Check the Confluence REST API documentation for reference
