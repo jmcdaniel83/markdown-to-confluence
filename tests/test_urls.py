@@ -16,29 +16,34 @@ Test different possible Confluence URL variations
 """
 
 import requests
-from confluence_config import CONFLUENCE_CONFIG
+from confluence_config import ConfluenceConfig
 
 def test_url_variations():
     """Test different possible Confluence URL variations"""
-    
+
+    config = ConfluenceConfig()
+    if not config.config:
+        print("❌ No configuration found. Run setup first: python confluence_config.py --setup")
+        return None
+
     base_urls = [
         "https://arganteal.atlassian.net",
         "https://arganteal.atlassian.net/wiki",
         "https://arganteal.atlassian.net/confluence",
         "https://arganteal.atlassian.net/rest/api",
     ]
-    
+
     session = requests.Session()
-    session.auth = (CONFLUENCE_CONFIG['username'], CONFLUENCE_CONFIG['api_token'])
+    session.auth = (config.config['username'], config.config['api_token'])
     session.headers.update({
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     })
-    
+
     for base_url in base_urls:
         print(f"\nTesting: {base_url}")
         print("-" * 50)
-        
+
         # Test basic API endpoint
         try:
             url = f"{base_url}/rest/api/content"
@@ -59,7 +64,7 @@ def test_url_variations():
                 print(f"Response: {response.text[:100]}...")
         except Exception as e:
             print(f"✗ Error: {e}")
-    
+
     return None
 
 if __name__ == "__main__":
@@ -67,4 +72,4 @@ if __name__ == "__main__":
     if working_url:
         print(f"\n🎉 Found working URL: {working_url}")
     else:
-        print("\n❌ No working URL found. Please check your Confluence instance URL.") 
+        print("\n❌ No working URL found. Please check your Confluence instance URL.")

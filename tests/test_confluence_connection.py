@@ -16,30 +16,35 @@ Test script to diagnose Confluence API connection issues
 """
 
 import requests
-from confluence_config import CONFLUENCE_CONFIG
+from confluence_config import ConfluenceConfig
 
 def test_confluence_connection():
     """Test basic connection to Confluence API"""
-    
+
+    config = ConfluenceConfig()
+    if not config.config:
+        print("❌ No configuration found. Run setup first: python confluence_config.py --setup")
+        return
+
     print("Testing Confluence API connection...")
-    print(f"Base URL: {CONFLUENCE_CONFIG['base_url']}")
-    print(f"Username: {CONFLUENCE_CONFIG['username']}")
-    print(f"Space Key: {CONFLUENCE_CONFIG['space_key']}")
-    print(f"API Token: {'*' * len(CONFLUENCE_CONFIG['api_token']) if CONFLUENCE_CONFIG['api_token'] else 'NOT SET'}")
+    print(f"Base URL: {config.config['base_url']}")
+    print(f"Username: {config.config['username']}")
+    print(f"Space Key: {config.config['space_key']}")
+    print(f"API Token: {'*' * len(config.config['api_token']) if config.config['api_token'] else 'NOT SET'}")
     print()
-    
+
     # Create session with authentication
     session = requests.Session()
-    session.auth = (CONFLUENCE_CONFIG['username'], CONFLUENCE_CONFIG['api_token'])
+    session.auth = (config.config['username'], config.config['api_token'])
     session.headers.update({
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     })
-    
+
     # Test 1: Basic API endpoint
     print("Test 1: Basic API endpoint...")
     try:
-        url = f"{CONFLUENCE_CONFIG['base_url']}/rest/api/content"
+        url = f"{config.config['base_url']}/rest/api/content"
         response = session.get(url)
         print(f"Status Code: {response.status_code}")
         print(f"Response: {response.text[:200]}...")
@@ -47,11 +52,11 @@ def test_confluence_connection():
     except Exception as e:
         print(f"Error: {e}")
         print()
-    
+
     # Test 2: Space information
     print("Test 2: Space information...")
     try:
-        url = f"{CONFLUENCE_CONFIG['base_url']}/rest/api/space/{CONFLUENCE_CONFIG['space_key']}"
+        url = f"{config.config['base_url']}/rest/api/space/{config.config['space_key']}"
         response = session.get(url)
         print(f"Status Code: {response.status_code}")
         print(f"Response: {response.text[:200]}...")
@@ -59,11 +64,11 @@ def test_confluence_connection():
     except Exception as e:
         print(f"Error: {e}")
         print()
-    
+
     # Test 3: User information
     print("Test 3: User information...")
     try:
-        url = f"{CONFLUENCE_CONFIG['base_url']}/rest/api/user/current"
+        url = f"{config.config['base_url']}/rest/api/user/current"
         response = session.get(url)
         print(f"Status Code: {response.status_code}")
         print(f"Response: {response.text[:200]}...")
@@ -73,4 +78,4 @@ def test_confluence_connection():
         print()
 
 if __name__ == "__main__":
-    test_confluence_connection() 
+    test_confluence_connection()
