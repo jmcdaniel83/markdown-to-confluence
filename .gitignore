@@ -14,6 +14,7 @@ venv/
 # Configuration files with sensitive data
 # Contains API tokens and credentials - NEVER commit this!
 confluence_config.py
+confluence_config.json
 
 # IDE and editor files
 .vscode/
@@ -27,4 +28,4 @@ Thumbs.db
 
 # Temporary files
 *.tmp
-*.log 
+*.log
