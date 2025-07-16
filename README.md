@@ -34,7 +34,9 @@ python confluence_markdown_converter.py <file1.md> <file2.md> \
   --api-token your-confluence-api-token \
   --space-key YOURSPACEKEY \
   [--parent-page "Parent Page Title"] \
-  [--page-title "Custom Page Title"]
+  [--page-title "Custom Page Title"] \
+  [--page-id "Confluence Page ID"] \
+  [--enable-math]
 ```
 
 - `--base-url`: Your Confluence base URL
@@ -43,6 +45,8 @@ python confluence_markdown_converter.py <file1.md> <file2.md> \
 - `--space-key`: The Confluence space key
 - `--parent-page`: (Optional) Title of the parent page
 - `--page-title`: (Optional) Custom page title
+- `--page-id`: (Optional) Specific Confluence page ID to update (if provided, will update existing page)
+- `--enable-math`: (Optional) Enable math conversion (for LaTeX/math support)
 
 ### Example
 ```bash
@@ -59,9 +63,25 @@ Run the test suite with:
 python -m unittest discover tests
 ```
 
+## Utility Scripts
+All utility scripts are now located in the `scripts/` folder. To use them, run:
+```bash
+python scripts/<script_name>.py [options]
+```
+For example:
+```bash
+python scripts/adjust_headers.py input.md > output.md
+python scripts/add_separators.py input.md > output.md
+```
+
+To use the provided Bash automation script:
+```bash
+bash scripts/convert_pva_docs.sh
+```
+
 ## License
 - This project is licensed under the [Apache License 2.0](LICENSE).
 
 ---
 
-For more details, see the documentation in `docs/CONFLUENCE_CONVERTER_README.md`. 
+For more details, see the documentation in `docs/CONFLUENCE_CONVERTER_README.md`.
