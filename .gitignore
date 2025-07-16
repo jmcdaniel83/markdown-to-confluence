@@ -13,7 +13,6 @@ venv/
 
 # Configuration files with sensitive data
 # Contains API tokens and credentials - NEVER commit this!
-confluence_config.py
 confluence_config.json
 scripts/convert_pva_docs.sh
 
