@@ -16,6 +16,7 @@ venv/
 confluence_config.json
 jira_config.json
 scripts/convert_pva_docs.sh
+scripts/convert_jira_issues.sh
 
 # IDE and editor files
 .vscode/
