@@ -61,6 +61,36 @@ python jira_config.py --test
 
 This will verify your credentials and project access.
 
+### 4. Generate Local Script
+
+Generate a local script with your credentials embedded:
+
+```bash
+python jira_config.py --generate-script convert_jira.sh
+```
+
+This creates a `convert_jira.sh` script at the project root with:
+- Your credentials from `jira_config.json`
+- Template structure from `scripts/convert_jira.sh`
+- Auto-generated header indicating it contains credentials
+- Ready-to-use configuration
+
+### 5. Customize and Run
+
+Edit the generated script to customize:
+- **ISSUE_TYPE**: Type of issue to create (Task, Bug, Story, etc.)
+- **PRIORITY**: Issue priority (Low, Medium, High, etc.)
+- **MARKDOWN_FILE**: Path to your markdown file
+- **PARENT_KEY**: Optional parent issue key for child issues
+- **ISSUE_KEY**: Optional existing issue key to update
+
+Then run:
+```bash
+./convert_jira.sh
+```
+
+⚠️ **Security Note**: Generated scripts contain your API token and are automatically ignored by git!
+
 ## Usage
 
 ### Command Line

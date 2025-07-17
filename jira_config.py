@@ -23,6 +23,51 @@ import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 
+# Default script path
+SCRIPT_PATH = "scripts/convert_jira.sh"
+
+# Template script placeholders
+JIRA_SCRIPT_PLACEHOLDERS = {
+    'BASE_URL': 'BASE_URL="https://your-domain.atlassian.net"',
+    'USERNAME': 'USERNAME="your-email@example.com"',
+    'API_TOKEN': 'API_TOKEN="your-api-token-here"',
+    'PROJECT_KEY': 'PROJECT_KEY="PROJ"',
+    'HEADER_COMMENT': '# Jira Issue Converter Script'
+}
+
+class JiraCommandOptions:
+    """Command line options for Jira configuration management"""
+
+    def __init__(self, setup: bool = False, test: bool = False, show: bool = False,
+                 generate_script: str = None):
+        self.setup = setup
+        self.test = test
+        self.show = show
+        self.generate_script = generate_script
+
+    @classmethod
+    def from_args(cls, args):
+        """Create JiraCommandOptions from argparse Namespace"""
+        return cls(
+            setup=args.setup,
+            test=args.test,
+            show=args.show,
+            generate_script=args.generate_script
+        )
+
+    def get_action(self) -> str:
+        """Determine which action to take based on the options"""
+        if self.setup:
+            return 'setup'
+        elif self.test:
+            return 'test'
+        elif self.show:
+            return 'show'
+        elif self.generate_script:
+            return 'generate_script'
+        else:
+            return 'help'
+
 class JiraConfig:
     """Manage Jira configuration and credentials"""
 
@@ -238,6 +283,79 @@ class JiraConfig:
             print(f"❌ Connection error: {e}")
             return False
 
+    def generate_local_script(self, script_name: str = "convert_jira.sh") -> str:
+        """
+        Generate a local script with credentials from config by loading the template
+        and replacing placeholders with actual configuration values.
+
+        Args:
+            script_name: Name of the generated script file (default: convert_jira.sh)
+
+        Returns:
+            Path to the generated script
+        """
+        if not self.is_configured():
+            print("Configuration not complete. Run setup first.")
+            return None
+
+        # Load the template script
+        template_path = Path("scripts/convert_jira.sh")
+        if not template_path.exists():
+            print(f"❌ Template script not found: {template_path}")
+            return None
+
+        try:
+            with open(template_path, 'r') as f:
+                script_content = f.read()
+        except Exception as e:
+            print(f"❌ Error reading template script: {e}")
+            return None
+
+        # Replace placeholders with actual configuration values
+        script_content = script_content.replace(
+            JIRA_SCRIPT_PLACEHOLDERS['BASE_URL'],
+            f'BASE_URL="{self.base_url}"'
+        )
+        script_content = script_content.replace(
+            JIRA_SCRIPT_PLACEHOLDERS['USERNAME'],
+            f'USERNAME="{self.username}"'
+        )
+        script_content = script_content.replace(
+            JIRA_SCRIPT_PLACEHOLDERS['API_TOKEN'],
+            f'API_TOKEN="{self.api_token}"'
+        )
+        script_content = script_content.replace(
+            JIRA_SCRIPT_PLACEHOLDERS['PROJECT_KEY'],
+            f'PROJECT_KEY="{self.project_key}"'
+        )
+
+        # Add a comment at the top indicating this is auto-generated
+        script_content = script_content.replace(
+            JIRA_SCRIPT_PLACEHOLDERS['HEADER_COMMENT'],
+            '# Auto-generated Jira Issue Converter Script\n# Generated from jira_config.json\n# DO NOT COMMIT THIS FILE - it contains your credentials!'
+        )
+
+        # Write the generated script to the solution level (same location as this script)
+        script_path = Path(script_name)
+        try:
+            with open(script_path, 'w') as f:
+                f.write(script_content)
+        except Exception as e:
+            print(f"❌ Error writing generated script: {e}")
+            return None
+
+        # Make executable
+        script_path.chmod(0o755)
+
+        print(f"✅ Generated local script: {script_path}")
+        print("⚠️  IMPORTANT: This file contains your credentials - DO NOT commit it!")
+        print(f"   The file '{script_name}' is already in .gitignore")
+        print("\n🎯 Next steps:")
+        print(f"   1. Edit {script_name} to customize issue types and file paths")
+        print(f"   2. Run: ./{script_name}")
+
+        return str(script_path)
+
 def main():
     """Main function for command line usage"""
     import argparse
@@ -246,31 +364,44 @@ def main():
     parser.add_argument('--setup', action='store_true', help='Run interactive setup')
     parser.add_argument('--test', action='store_true', help='Test Jira connection')
     parser.add_argument('--show', action='store_true', help='Show current configuration')
+    parser.add_argument('--generate-script', default=SCRIPT_PATH, help='Generate local script with credentials')
 
     args = parser.parse_args()
-
+    options = JiraCommandOptions.from_args(args)
     config = JiraConfig()
 
-    if args.setup:
-        config.setup_interactive()
-    elif args.test:
-        config.test_connection()
-    elif args.show:
-        if config.is_configured():
-            print("Current Configuration:")
-            print(f"  Base URL: {config.base_url}")
-            print(f"  Username: {config.username}")
-            print(f"  Project Key: {config.project_key}")
-            print(f"  Default Issue Type: {config.default_issue_type}")
-            print(f"  Default Priority: {config.default_priority}")
-            if config.default_assignee:
-                print(f"  Default Assignee: {config.default_assignee}")
-            if config.default_parent_key:
-                print(f"  Default Parent Key: {config.default_parent_key}")
-        else:
-            print("Configuration not set up. Run --setup to configure.")
-    else:
-        parser.print_help()
+    # Use match statement to handle different actions
+    match options.get_action():
+        case 'setup':
+            config.setup_interactive()
+
+        case 'test':
+            config.test_connection()
+
+        case 'show':
+            if config.is_configured():
+                print("Current Configuration:")
+                print(f"  Base URL: {config.base_url}")
+                print(f"  Username: {config.username}")
+                print(f"  Project Key: {config.project_key}")
+                print(f"  Default Issue Type: {config.default_issue_type}")
+                print(f"  Default Priority: {config.default_priority}")
+                if config.default_assignee:
+                    print(f"  Default Assignee: {config.default_assignee}")
+                if config.default_parent_key:
+                    print(f"  Default Parent Key: {config.default_parent_key}")
+            else:
+                print("Configuration not set up. Run --setup to configure.")
+
+        case 'generate_script':
+            script_path = config.generate_local_script(options.generate_script)
+            if script_path:
+                print(f"\n🎯 Usage:")
+                print(f"   ./{options.generate_script}")
+                print(f"   # Edit the script to customize issue types and file paths")
+
+        case 'help':
+            parser.print_help()
 
 if __name__ == "__main__":
     main()

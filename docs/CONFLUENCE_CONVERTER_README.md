@@ -92,8 +92,17 @@ python confluence_markdown_converter.py README.md \
 # Setup credentials (first time only)
 python confluence_config.py --setup
 
-# Convert your project docs
-python confluence_config.py --files README.md DEPLOYMENT.md --parent-page "Arganteal SCT"
+# Test your configuration
+python confluence_config.py --test
+
+# Generate a local script with your credentials
+python confluence_config.py --generate-script convert_confluence.sh
+
+# Edit the script to customize page titles and file paths
+nano convert_confluence.sh
+
+# Run the script
+./convert_confluence.sh
 ```
 
 ### Example 2: Update Existing Pages
@@ -129,8 +138,9 @@ your-project/
 │   ├── CONFLUENCE_CONVERTER_README.md # This file
 │   ├── CONFIG_TESTER_README.md        # Configuration testing guide
 │   └── example_comprehensive.md       # Example markdown file
-├── scripts/                         # Utility scripts
-│   ├── convert_pva_docs.sh          # Bash automation script (DO NOT COMMIT)
+├── scripts/                         # Utility scripts and templates
+│   ├── convert_confluence.sh        # Template script (safe to commit)
+│   ├── convert_jira.sh              # Template script (safe to commit)
 │   ├── adjust_headers.py            # Header adjustment utility
 │   └── add_separators.py            # Separator addition utility
 └── tests/                           # Test suite
@@ -160,6 +170,35 @@ your-project/
 | **Blockquotes** | ✅ | Preserved formatting |
 | **Line Breaks** | ✅ | Proper spacing maintained |
 | **Images** | ⚠️ | Basic support (URLs only) |
+
+## Script Generation
+
+The configuration system can automatically generate local scripts with your credentials embedded:
+
+### Generate Local Script
+
+```bash
+python confluence_config.py --generate-script convert_confluence.sh
+```
+
+This creates a `convert_confluence.sh` script at the project root with:
+- Your credentials from `confluence_config.json`
+- Template structure from `scripts/convert_confluence.sh`
+- Auto-generated header indicating it contains credentials
+- Ready-to-use configuration
+
+### Customize Generated Script
+
+Edit the generated script to customize:
+- **PAGE_TITLE**: The title for your Confluence page
+- **PAGE_ID**: Optional - for updating existing pages
+- **MARKDOWN_FILE**: Path to your markdown file
+
+### Security
+
+- Generated scripts contain your credentials and are **automatically ignored by git**
+- The `.gitignore` file includes `/convert_*.sh` to prevent accidental commits
+- Template scripts in `scripts/` are safe to commit (they contain placeholders only)
 
 ## Configuration File
 

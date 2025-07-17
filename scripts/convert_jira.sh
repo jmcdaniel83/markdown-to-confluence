@@ -35,8 +35,8 @@ PROJECT_KEY="PROJ"
 
 # Issue configuration - UPDATE THESE FOR YOUR ISSUES
 # Uncomment and configure the issue you want to create/update
-#ISSUE_TYPE="Task"
-#PRIORITY="Medium"
+ISSUE_TYPE="Task"
+PRIORITY="Medium"
 #ASSIGNEE="username"
 #PARENT_KEY="PROJ-123"  # Optional: for creating child issues
 #ISSUE_KEY="PROJ-456"   # Optional: for updating existing issues

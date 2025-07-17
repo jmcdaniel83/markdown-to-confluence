@@ -63,6 +63,70 @@ Run the test suite with:
 python -m unittest discover tests
 ```
 
+## Quick Start with Configuration
+
+The easiest way to get started is using the configuration-based approach for both Confluence and Jira:
+
+### Confluence Setup
+
+**1. Setup Configuration:**
+```bash
+python confluence_config.py --setup
+```
+
+**2. Generate Local Script:**
+```bash
+python confluence_config.py --generate-script convert_confluence.sh
+```
+
+**3. Customize and Run:**
+Edit the generated script to customize page titles and file paths, then run:
+```bash
+./convert_confluence.sh
+```
+
+### Jira Setup
+
+**1. Setup Configuration:**
+```bash
+python jira_config.py --setup
+```
+
+**2. Generate Local Script:**
+```bash
+python jira_config.py --generate-script convert_jira.sh
+```
+
+**3. Customize and Run:**
+Edit the generated script to customize issue types and file paths, then run:
+```bash
+./convert_jira.sh
+```
+
+### Input Directory Structure
+Create the following directory structure for your markdown files:
+```
+input/
+├── confluence/
+│   └── your_file.md
+└── jira/
+    └── your_file.md
+```
+
+## Tool Overview
+
+### Confluence Converter
+- **Purpose**: Convert Markdown to Confluence pages
+- **Features**: Page creation/updates, hierarchical structure, code blocks, tables, links
+- **Use Cases**: Documentation, project wikis, knowledge bases
+- **📖 [Detailed Documentation](docs/CONFLUENCE_CONVERTER_README.md)**
+
+### Jira Converter
+- **Purpose**: Convert Markdown to Jira issues and comments
+- **Features**: Issue creation/updates, comments, parent-child relationships, code blocks
+- **Use Cases**: Bug reports, feature requests, technical specifications
+- **📖 [Detailed Documentation](docs/JIRA_CONVERTER_README.md)**
+
 ## Utility Scripts
 All utility scripts are now located in the `scripts/` folder. To use them, run:
 ```bash
@@ -84,4 +148,8 @@ bash scripts/convert_pva_docs.sh
 
 ---
 
-For more details, see the documentation in `docs/CONFLUENCE_CONVERTER_README.md`.
+## Documentation
+
+- **📖 [Confluence Converter Guide](docs/CONFLUENCE_CONVERTER_README.md)** - Complete setup and usage guide
+- **📖 [Jira Converter Guide](docs/JIRA_CONVERTER_README.md)** - Complete setup and usage guide
+- **📖 [Configuration Testing Guide](docs/CONFIG_TESTER_README.md)** - Test your API connections
