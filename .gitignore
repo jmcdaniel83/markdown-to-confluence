@@ -22,6 +22,9 @@ jira_config.json
 # Input files - contains markdown files to be converted
 input/
 
+# Tracking files
+uploaded_tickets.txt
+
 # IDE and editor files
 .vscode/
 .idea/
