@@ -109,16 +109,16 @@ def get_priorities(config: JiraConfig):
     else:
         print(f"❌ Failed to get priorities: {response.text}")
 
-def get_components(config):
+def get_components(config: JiraConfig):
     """Get available components for the project"""
     session = requests.Session()
-    session.auth = (config['username'], config['api_token'])
+    session.auth = (config.username, config.api_token)
     session.headers.update({
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     })
 
-    url = f"{config['base_url']}/rest/api/2/project/{config['project_key']}/components"
+    url = f"{config.base_url}/rest/api/2/project/{config.project_key}/components"
     response = session.get(url)
     print(f"\nComponents status: {response.status_code}")
     if response.status_code == 200:
@@ -139,6 +139,7 @@ if __name__ == "__main__":
         get_project_info(config)
         get_issue_types(config)
         get_priorities(config)
+        get_components(config)
     else:
         print("Cannot proceed with other tests due to connection failure.")
         print("\nTo set up configuration, run:")
