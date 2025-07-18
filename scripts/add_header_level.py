@@ -4,9 +4,19 @@ Script to add one level of header to all markdown files.
 Converts # to ##, ## to ###, etc.
 """
 
+import argparse
 import os
 import re
+import sys
 from pathlib import Path
+
+# Constants
+SCRIPT_EXAMPLES = """
+Examples:
+  python add_header_level.py input/jira/spike
+  python add_header_level.py docs/
+  python add_header_level.py .
+"""
 
 def add_header_level(content: str) -> str:
     """Add one level to all headers in the content"""
@@ -67,7 +77,51 @@ def process_directory(directory_path: str):
 
     print(f"\nCompleted processing {len(markdown_files)} files.")
 
+def main():
+    """Main function to handle command line arguments and process files"""
+    parser = argparse.ArgumentParser(
+        description="Add one level of header to all markdown files in a directory",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=SCRIPT_EXAMPLES
+    )
+
+    parser.add_argument(
+        'directory',
+        help='Directory containing markdown files to process'
+    )
+
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Show what would be changed without making changes'
+    )
+
+    args = parser.parse_args()
+
+    # Validate directory exists
+    if not Path(args.directory).exists():
+        print(f"❌ Error: Directory '{args.directory}' does not exist")
+        sys.exit(1)
+
+    if args.dry_run:
+        print(f"🔍 Dry run mode - no changes will be made")
+        print(f"📁 Processing directory: {args.directory}")
+        # For dry run, we'll just show what files would be processed
+        directory = Path(args.directory)
+        markdown_files = list(directory.glob("*.md"))
+
+        if not markdown_files:
+            print(f"❌ No markdown files found in {args.directory}")
+            sys.exit(1)
+
+        print(f"📄 Found {len(markdown_files)} markdown files:")
+        for file_path in markdown_files:
+            print(f"   - {file_path.name}")
+
+        print(f"\n💡 Run without --dry-run to actually process these files")
+    else:
+        process_directory(args.directory)
+
+
 if __name__ == "__main__":
-    # Process the jira spike directory
-    spike_dir = "input/jira/spike"
-    process_directory(spike_dir)
+    main()
