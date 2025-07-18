@@ -33,6 +33,7 @@ from typing import Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 import argparse
 from pathlib import Path
+from dataclasses import dataclass
 
 # List of markdown extensions used for conversion
 MARKDOWN_EXTENSIONS = [
@@ -48,6 +49,34 @@ MATH_EXTENSIONS = [
     'mdx_math',
 ]
 
+@dataclass
+class CommandLine:
+    """Command line arguments for Confluence markdown converter"""
+    files: List[str]
+    base_url: str
+    username: str
+    api_token: str
+    space_key: str
+    parent_page: Optional[str] = None
+    page_title: Optional[str] = None
+    page_id: Optional[str] = None
+    enable_math: bool = False
+
+    @classmethod
+    def from_args(cls, args: argparse.Namespace) -> 'CommandLine':
+        """Create CommandLine instance from argparse Namespace"""
+        return cls(
+            files=args.files,
+            base_url=args.base_url,
+            username=args.username,
+            api_token=args.api_token,
+            space_key=args.space_key,
+            parent_page=args.parent_page,
+            page_title=args.page_title,
+            page_id=args.page_id,
+            enable_math=args.enable_math
+        )
+
 def strip_html_tags(text):
     """Remove all HTML tags from the given text."""
     return re.sub(r'<[^>]+>', '', text)
@@ -55,24 +84,20 @@ def strip_html_tags(text):
 class ConfluenceMarkdownConverter:
     """Convert markdown to Confluence markup and publish to Confluence"""
 
-    def __init__(self, base_url: str, username: str, api_token: str, space_key: str, enable_math: bool = False):
+    def __init__(self, cmd: CommandLine):
         """
         Initialize the converter with Confluence credentials
 
         Args:
-            base_url: Confluence base URL (e.g., https://your-domain.atlassian.net)
-            username: Confluence username or email
-            api_token: Confluence API token (not password)
-            space_key: Confluence space key
-            enable_math: Whether to enable math conversion (default: False)
+            cmd: CommandLine object containing all configuration options
         """
-        self.base_url = base_url.rstrip('/')
-        self.username = username
-        self.api_token = api_token
-        self.space_key = space_key
-        self.enable_math = enable_math
+        self.base_url = cmd.base_url.rstrip('/')
+        self.username = cmd.username
+        self.api_token = cmd.api_token
+        self.space_key = cmd.space_key
+        self.enable_math = cmd.enable_math
         self.session = requests.Session()
-        self.session.auth = (username, api_token)
+        self.session.auth = (cmd.username, cmd.api_token)
         self.session.headers.update({
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -416,20 +441,13 @@ class ConfluenceMarkdownConverter:
         response.raise_for_status()
         return response.json()
 
-    def publish_markdown_file(self,
-            file_path: str,
-            page_title: Optional[str] = None,
-            parent_page_title: Optional[str] = None,
-            page_id: Optional[str] = None
-        ) -> Dict:
+    def publish_markdown_file(self, file_path: str, cmd: CommandLine) -> Dict:
         """
         Convert and publish a markdown file to Confluence
 
         Args:
             file_path: Path to the markdown file
-            page_title: Optional custom page title (defaults to filename)
-            parent_page_title: Optional parent page title
-            page_id: Optional specific page ID to update (if provided, will update existing page)
+            cmd: CommandLine object containing all configuration options
 
         Returns:
             Response data from Confluence API
@@ -439,6 +457,7 @@ class ConfluenceMarkdownConverter:
             markdown_content = f.read()
 
         # Determine page title
+        page_title = cmd.page_title
         if not page_title:
             # Check for renames.json mapping first
             renames_file = Path('renames.json')
@@ -462,13 +481,13 @@ class ConfluenceMarkdownConverter:
 
         # Get parent page ID if specified
         parent_id = None
-        if parent_page_title:
-            parent_id = self.get_page_id(parent_page_title)
+        if cmd.parent_page:
+            parent_id = self.get_page_id(cmd.parent_page)
             if not parent_id:
-                print(f"Warning: Parent page '{parent_page_title}' not found")
+                print(f"Warning: Parent page '{cmd.parent_page}' not found")
 
         # Check if page already exists
-        existing_page_id = page_id if page_id else self.get_page_id(page_title)
+        existing_page_id = cmd.page_id if cmd.page_id else self.get_page_id(page_title)
 
         if existing_page_id:
             # Update existing page
@@ -503,29 +522,19 @@ def main():
     parser.add_argument('--enable-math', action='store_true', help='Enable math conversion (default: False)')
 
     args = parser.parse_args()
+    cmd = CommandLine.from_args(args)
 
     # Initialize converter
-    converter = ConfluenceMarkdownConverter(
-        base_url=args.base_url,
-        username=args.username,
-        api_token=args.api_token,
-        space_key=args.space_key,
-        enable_math=args.enable_math
-    )
+    converter = ConfluenceMarkdownConverter(cmd)
 
     # Process each file
-    for file_path in args.files:
+    for file_path in cmd.files:
         if not os.path.exists(file_path):
             print(f"Error: File not found: {file_path}")
             continue
 
         try:
-            result = converter.publish_markdown_file(
-                file_path=file_path,
-                page_title=args.page_title,
-                parent_page_title=args.parent_page,
-                page_id=args.page_id
-            )
+            result = converter.publish_markdown_file(file_path, cmd)
             print(f"Successfully processed: {file_path}")
         except Exception as e:
             print(f"Error processing {file_path}: {str(e)}")

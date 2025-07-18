@@ -19,6 +19,9 @@ jira_config.json
 # Local scripts with credentials (auto-generated)
 /convert_*.sh
 
+# Input files - contains markdown files to be converted
+input/
+
 # IDE and editor files
 .vscode/
 .idea/

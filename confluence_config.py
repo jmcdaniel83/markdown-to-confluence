@@ -23,7 +23,7 @@ from pathlib import Path
 CONFIG_FILE = "confluence_config.json"
 
 # Default script path
-SCRIPT_PATH = "scripts/convert_confluence.sh"
+TEMPLATE_SCRIPT_PATH = "scripts/convert_confluence.sh"
 
 # Template script placeholders
 CONFLUENCE_SCRIPT_PLACEHOLDERS = {
@@ -64,7 +64,7 @@ class ConfluenceCommandOptions:
             return 'test'
         elif self.show:
             return 'show'
-        elif self.generate_script:
+        elif self.generate_script is not None:
             return 'generate_script'
         else:
             return 'help'
@@ -240,7 +240,7 @@ class ConfluenceConfig:
             return None
 
         # Load the template script
-        template_path = Path("scripts/convert_confluence.sh")
+        template_path = Path(TEMPLATE_SCRIPT_PATH)
         if not template_path.exists():
             print(f"❌ Template script not found: {template_path}")
             return None
@@ -303,7 +303,7 @@ def main():
     parser.add_argument('--setup', action='store_true', help='Run interactive setup')
     parser.add_argument('--test', action='store_true', help='Test current configuration')
     parser.add_argument('--show', action='store_true', help='Show current configuration')
-    parser.add_argument('--generate-script', default=SCRIPT_PATH, help='Generate local script with credentials')
+    parser.add_argument('--generate-script', nargs='?', const='convert_confluence.sh', help='Generate local script with credentials (default: convert_confluence.sh)')
     parser.add_argument('--config-file', default=CONFIG_FILE, help='Configuration file path')
 
     args = parser.parse_args()
@@ -324,10 +324,11 @@ def main():
             config.show_config()
 
         case 'generate_script':
-            script_path = config.generate_local_script(options.generate_script)
+            script_name = options.generate_script or "convert_confluence.sh"
+            script_path = config.generate_local_script(script_name)
             if script_path:
                 print(f"\n🎯 Usage:")
-                print(f"   ./{options.generate_script}")
+                print(f"   ./{script_name}")
                 print(f"   # Edit the script to customize page titles and file paths")
 
         case 'help':
