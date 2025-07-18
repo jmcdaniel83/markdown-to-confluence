@@ -53,10 +53,12 @@ def get_project_info(config: JiraConfig):
     print(f"\nProject info status: {response.status_code}")
     if response.status_code == 200:
         project_info = response.json()
-        print(f"Project: {project_info.get('name', 'Unknown')} ({project_info.get('key', 'Unknown')})")
-        print(f"Project ID: {project_info.get('id', 'Unknown')}")
+        print(f"✅ Project: {project_info.get('name', 'Unknown')} ({project_info.get('key', 'Unknown')})")
+        print(f"   Project ID: {project_info.get('id', 'Unknown')}")
+        return project_info
     else:
-        print(f"Failed to get project info: {response.text}")
+        print(f"❌ Failed to get project info: {response.text}")
+        return None
 
 def get_issue_types(config: JiraConfig):
     """Get available issue types for the project"""
@@ -79,11 +81,13 @@ def get_issue_types(config: JiraConfig):
         print(f"\nIssue types status: {response.status_code}")
         if response.status_code == 200:
             issue_types = response.json()
-            print("Available issue types:")
+            print("✅ Available issue types:")
             for issue_type in issue_types:
-                print(f"  - {issue_type.get('name', 'Unknown')}")
+                print(f"   - {issue_type.get('name', 'Unknown')}")
         else:
-            print(f"Failed to get issue types: {response.text}")
+            print(f"❌ Failed to get issue types: {response.text}")
+    else:
+        print(f"❌ Failed to get project info for issue types: {response.text}")
 
 def get_priorities(config: JiraConfig):
     """Get available priorities"""
@@ -99,11 +103,31 @@ def get_priorities(config: JiraConfig):
     print(f"\nPriorities status: {response.status_code}")
     if response.status_code == 200:
         priorities = response.json()
-        print("Available priorities:")
+        print("✅ Available priorities:")
         for priority in priorities:
-            print(f"  - {priority.get('name', 'Unknown')}")
+            print(f"   - {priority.get('name', 'Unknown')}")
     else:
-        print(f"Failed to get priorities: {response.text}")
+        print(f"❌ Failed to get priorities: {response.text}")
+
+def get_components(config):
+    """Get available components for the project"""
+    session = requests.Session()
+    session.auth = (config['username'], config['api_token'])
+    session.headers.update({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    })
+
+    url = f"{config['base_url']}/rest/api/2/project/{config['project_key']}/components"
+    response = session.get(url)
+    print(f"\nComponents status: {response.status_code}")
+    if response.status_code == 200:
+        components = response.json()
+        print("✅ Available components:")
+        for component in components:
+            print(f"   - {component.get('name', 'Unknown')} (ID: {component.get('id', 'Unknown')})")
+    else:
+        print(f"❌ Failed to get components: {response.text}")
 
 if __name__ == "__main__":
     print("Testing Jira connection and configuration...")
