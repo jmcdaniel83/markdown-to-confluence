@@ -39,6 +39,9 @@ from typing import Dict, List, Optional
 import markdown
 import requests
 
+# Local imports
+from jira_constants import Components, Categories, IssueTypes, Priorities, CustomFields
+
 # List of markdown extensions used for conversion
 MARKDOWN_EXTENSIONS = [
     'markdown.extensions.def_list',
@@ -65,8 +68,8 @@ class CommandLine:
     username: str
     api_token: str
     project_key: str
-    issue_type: str = "Task"
-    priority: str = "Medium"
+    issue_type: str = IssueTypes.TASK
+    priority: str = Priorities.MEDIUM
     assignee: Optional[str] = None
     time_estimate: Optional[str] = None
     issue_key: Optional[str] = None
@@ -375,7 +378,9 @@ class JiraMarkdownConverter:
                 "summary": summary,
                 "description": description,
                 "issuetype": {"name": cmd.issue_type},
-                "priority": {"name": cmd.priority}
+                "priority": {"name": cmd.priority},
+                "components": [{"id": Components.OTHER}],  # "Other" component
+                CustomFields.CATEGORY: {"value": Categories.SOFTWARE_RESEARCH_DEV}  # Category
             }
         }
 
@@ -511,6 +516,7 @@ class JiraMarkdownConverter:
                     # let's choose the higher number of days
                     days = max(int(match.group(1)), int(match.group(2)))
                     estimated_time = f"{days}d"
+                    self.logger.info(f"Estimated time: {estimated_time}")
 
                     # update the provided command line object with the estimated time
                     cmd.time_estimate = estimated_time
