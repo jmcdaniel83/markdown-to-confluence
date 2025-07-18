@@ -13,6 +13,68 @@ A Python tool to convert markdown files to Jira markup format and publish them d
 - ✅ **Link Preservation**: Maintains internal and external links
 - ✅ **Batch Processing**: Convert multiple files at once
 - ✅ **Configuration Management**: Secure credential storage
+- ✅ **Automatic Header Spacing**: Proper spacing around headers for readability
+- ✅ **UTF-8 Encoding**: Robust handling of special characters and emojis
+- ✅ **HTTP Status Handling**: Uses readable status codes with proper error handling
+
+## Recent Improvements
+
+### 🔧 **Code Quality Enhancements**
+- **CommandLine Dataclass**: Clean CLI argument handling with type safety
+- **HTTP Status Constants**: Uses `http.HTTPStatus` library for readable status codes
+- **Shared Response Handler**: Centralized response processing with UTF-8 support
+- **Robust Error Handling**: Graceful handling of JSON decode errors and empty responses
+
+### 📝 **Markdown Processing**
+- **Automatic Header Spacing**: Adds proper newlines around headers for better Jira readability
+- **Enhanced Code Blocks**: Improved syntax highlighting and formatting
+- **Better List Handling**: Improved conversion of ordered and unordered lists
+- **Table Improvements**: Enhanced table conversion with proper Jira markup
+
+### 🛡️ **Security & Configuration**
+- **Input Directory Protection**: `input/` folder is ignored by Git for privacy
+- **Secure Credential Storage**: Configuration files with proper permissions
+- **Comprehensive API Documentation**: Detailed documentation of capabilities and limitations
+
+## Technical Architecture
+
+### CommandLine Dataclass
+The converter uses a `CommandLine` dataclass to encapsulate all CLI arguments, providing:
+- **Type Safety**: All arguments are properly typed
+- **Clean Method Signatures**: Methods accept a single `CommandLine` object
+- **Consistency**: Uniform argument handling across all methods
+- **Maintainability**: Easy to add new arguments without breaking existing code
+
+```python
+@dataclass
+class CommandLine:
+    files: List[str]
+    base_url: str
+    username: str
+    api_token: str
+    project_key: str
+    issue_type: str = "Task"
+    priority: str = "Medium"
+    assignee: Optional[str] = None
+    time_estimate: Optional[str] = None
+    issue_key: Optional[str] = None
+    parent_key: Optional[str] = None
+    as_comment: bool = False
+```
+
+### Response Handling
+The converter includes a shared `_handle_response` method that:
+- **Sets UTF-8 Encoding**: Ensures proper character handling
+- **Handles Empty Responses**: Gracefully processes 204 No Content responses
+- **Uses HTTP Status Constants**: `http.HTTPStatus.CREATED` instead of magic numbers
+- **Provides Clear Logging**: Includes status code phrases in debug messages
+- **Error Recovery**: Catches JSON decode errors and provides fallbacks
+
+### Header Spacing
+Automatic header spacing ensures proper formatting in Jira:
+- **First Header**: Gets newline after it only
+- **Other Headers**: Get newlines before and after
+- **Clean Formatting**: Removes excessive newlines for readability
 
 ## Prerequisites
 
@@ -106,6 +168,7 @@ python jira_markdown_converter.py <file1.md> <file2.md> \
   [--issue-type "Task"] \
   [--priority "Medium"] \
   [--assignee "username"] \
+  [--time-estimate "2h"] \
   [--parent-key "PROJ-123"] \
   [--issue-key "PROJ-123"] \
   [--as-comment]
@@ -119,6 +182,7 @@ python jira_markdown_converter.py <file1.md> <file2.md> \
 - `--issue-type`: Type of issue to create (default: Task)
 - `--priority`: Issue priority (default: Medium)
 - `--assignee`: Optional assignee username
+- `--time-estimate`: Optional time estimate (e.g., "2h", "1d", "30m", "1w")
 - `--parent-key`: Optional parent issue key for creating child issues
 - `--issue-key`: Optional existing issue key to update
 - `--as-comment`: If provided, add content as comment to existing issue
@@ -141,7 +205,8 @@ python jira_markdown_converter.py docs/bug_report.md \
   --api-token <your-token> \
   --project-key PROJ \
   --issue-type Bug \
-  --priority High
+  --priority High \
+  --time-estimate 2h
 ```
 
 **Update existing issue:**
