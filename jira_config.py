@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 # Default script path
-SCRIPT_PATH = "scripts/convert_jira.sh"
+TEMPLATE_SCRIPT_PATH = "scripts/convert_jira.sh"
 
 # Template script placeholders
 JIRA_SCRIPT_PLACEHOLDERS = {
@@ -63,7 +63,7 @@ class JiraCommandOptions:
             return 'test'
         elif self.show:
             return 'show'
-        elif self.generate_script:
+        elif self.generate_script is not None:
             return 'generate_script'
         else:
             return 'help'
@@ -190,6 +190,17 @@ class JiraConfig:
         self._config['default_parent_key'] = value
         self._save_config()
 
+    @property
+    def default_time_estimate(self) -> Optional[str]:
+        """Get default time estimate"""
+        return self._config.get('default_time_estimate')
+
+    @default_time_estimate.setter
+    def default_time_estimate(self, value: str):
+        """Set default time estimate"""
+        self._config['default_time_estimate'] = value
+        self._save_config()
+
     def is_configured(self) -> bool:
         """Check if configuration is complete"""
         required_fields = ['base_url', 'username', 'api_token', 'project_key']
@@ -233,6 +244,7 @@ class JiraConfig:
         default_priority = input("Default Priority (default: Medium): ").strip() or "Medium"
         default_assignee = input("Default Assignee (optional): ").strip() or None
         default_parent_key = input("Default Parent Issue Key (optional): ").strip() or None
+        default_time_estimate = input("Default Time Estimate (e.g., 2h, 1d, 30m) (optional): ").strip() or None
 
         # Save configuration
         self.base_url = base_url
@@ -245,6 +257,8 @@ class JiraConfig:
             self.default_assignee = default_assignee
         if default_parent_key:
             self.default_parent_key = default_parent_key
+        if default_time_estimate:
+            self.default_time_estimate = default_time_estimate
 
         print(f"\nConfiguration saved to {self.config_file}")
         print("⚠️  IMPORTANT: Keep your API token secure and never commit it to version control!")
@@ -299,7 +313,7 @@ class JiraConfig:
             return None
 
         # Load the template script
-        template_path = Path("scripts/convert_jira.sh")
+        template_path = Path(TEMPLATE_SCRIPT_PATH)
         if not template_path.exists():
             print(f"❌ Template script not found: {template_path}")
             return None
@@ -364,7 +378,7 @@ def main():
     parser.add_argument('--setup', action='store_true', help='Run interactive setup')
     parser.add_argument('--test', action='store_true', help='Test Jira connection')
     parser.add_argument('--show', action='store_true', help='Show current configuration')
-    parser.add_argument('--generate-script', default=SCRIPT_PATH, help='Generate local script with credentials')
+    parser.add_argument('--generate-script', nargs='?', const='convert_jira.sh', help='Generate local script with credentials (default: convert_jira.sh)')
 
     args = parser.parse_args()
     options = JiraCommandOptions.from_args(args)
@@ -387,17 +401,20 @@ def main():
                 print(f"  Default Issue Type: {config.default_issue_type}")
                 print(f"  Default Priority: {config.default_priority}")
                 if config.default_assignee:
-                    print(f"  Default Assignee: {config.default_assignee}")
-                if config.default_parent_key:
-                    print(f"  Default Parent Key: {config.default_parent_key}")
+                                    print(f"  Default Assignee: {config.default_assignee}")
+            if config.default_parent_key:
+                print(f"  Default Parent Key: {config.default_parent_key}")
+            if config.default_time_estimate:
+                print(f"  Default Time Estimate: {config.default_time_estimate}")
             else:
                 print("Configuration not set up. Run --setup to configure.")
 
         case 'generate_script':
-            script_path = config.generate_local_script(options.generate_script)
+            script_name = options.generate_script or "convert_jira.sh"
+            script_path = config.generate_local_script(script_name)
             if script_path:
                 print(f"\n🎯 Usage:")
-                print(f"   ./{options.generate_script}")
+                print(f"   ./{script_name}")
                 print(f"   # Edit the script to customize issue types and file paths")
 
         case 'help':
