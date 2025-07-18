@@ -170,7 +170,11 @@ class JiraMarkdownConverter:
 
         return jira_markup
 
-    def _html_to_jira_markup(self, html_content: str, markdown_content: str) -> str:
+    def _html_to_jira_markup(
+        self,
+        html_content: str,
+        markdown_content: str
+    ) -> str:
         """
         Convert HTML to Jira markup
 
@@ -214,7 +218,7 @@ class JiraMarkdownConverter:
         )
 
         # Inline code
-        markup = re.sub(r'<code>(.*?)</code>', r'{{monospace}}\1{{monospace}}', markup)
+        markup = re.sub(r'<code>(.*?)</code>', r'{{\1}}', markup)
 
         # Links
         markup = re.sub(r'<a href="([^"]+)">(.*?)</a>', r'[\2|\1]', markup)
@@ -252,7 +256,11 @@ class JiraMarkdownConverter:
 
         return markup
 
-    def _convert_list_items(self, list_content: str, marker: str) -> str:
+    def _convert_list_items(
+        self,
+        list_content: str,
+        marker: str
+    ) -> str:
         """Convert list items to Jira format"""
         # Find all list items
         items = re.findall(r'<li>(.*?)</li>', list_content, flags=re.DOTALL)
@@ -358,7 +366,12 @@ class JiraMarkdownConverter:
 
         return int(value * conversions[unit])
 
-    def create_issue(self, summary: str, description: str, cmd: CommandLine) -> Dict:
+    def create_issue(
+        self,
+        summary: str,
+        description: str,
+        cmd: CommandLine
+    ) -> Dict:
         """
         Create a new issue in Jira
 
@@ -406,11 +419,12 @@ class JiraMarkdownConverter:
 
         return self._handle_response(response)
 
-    def update_issue(self,
-                     issue_key: str,
-                     summary: Optional[str] = None,
-                     description: Optional[str] = None
-        ) -> Dict:
+    def update_issue(
+        self,
+        issue_key: str,
+        summary: Optional[str] = None,
+        description: Optional[str] = None
+    ) -> Dict:
         """
         Update an existing issue in Jira
 
@@ -433,7 +447,11 @@ class JiraMarkdownConverter:
         response = self.session.put(url, json=data)
         return self._handle_response(response)
 
-    def add_comment(self, issue_key: str, comment: str) -> Dict:
+    def add_comment(
+        self,
+        issue_key: str,
+        comment: str
+    ) -> Dict:
         """
         Add a comment to an existing issue
 
@@ -451,7 +469,11 @@ class JiraMarkdownConverter:
         response = self.session.post(url, json=data)
         return self._handle_response(response)
 
-    def update_time_estimate(self, issue_key: str, time_estimate: str) -> None:
+    def update_time_estimate(
+        self,
+        issue_key: str,
+        time_estimate: str
+    ) -> None:
         """
         Update the time estimate for an existing issue.
         Args:
@@ -481,28 +503,43 @@ class JiraMarkdownConverter:
         else:
             self.logger.info(f"Time estimate updated for {issue_key}")
 
-    def publish_markdown_file(self, file_path: str, cmd: CommandLine) -> Dict:
+    def _extract_issue_summary(self, markdown_content: str) -> str:
         """
-        Convert and publish a markdown file to Jira
+        Extract issue summary from the first line of markdown file
 
         Args:
-            file_path: Path to the markdown file
-            cmd: CommandLine object containing all configuration options
+            markdown_content: Raw markdown content
 
         Returns:
-            Response data from Jira API
+            Issue summary string
         """
-        # Read markdown file
-        with open(file_path, 'r', encoding='utf-8') as f:
-            markdown_content = f.read()
-
-        # split the markdown file into lines
+        # Split the markdown file into lines
         markdown_lines = markdown_content.split('\n')
 
-        # let's get the summary from the first line of the markdown file
+        # Get the summary from the first line of the markdown file
         # removing the markdown header
         issue_summary = markdown_lines[0].strip()
         issue_summary = issue_summary.replace('#', '').strip()
+
+        return issue_summary
+
+    def _extract_time_estimate_and_content(
+        self,
+        markdown_content: str,
+        cmd: CommandLine
+    ) -> str:
+        """
+        Extract time estimate from markdown and process content
+
+        Args:
+            markdown_content: Raw markdown content
+            cmd: CommandLine object to update with time estimate
+
+        Returns:
+            Processed content without time estimate section
+        """
+        # split the markdown file into lines
+        markdown_lines = markdown_content.split('\n')
 
         # remove the first two lines of the markdown file
         markdown_lines = markdown_lines[2:]
@@ -526,10 +563,37 @@ class JiraMarkdownConverter:
         markdown_lines = markdown_lines[:idx]
 
         # join the markdown lines back together
-        markdown_content = '\n'.join(markdown_lines)
+        processed_content = '\n'.join(markdown_lines)
+
+        return processed_content
+
+    def publish_markdown_file(
+        self,
+        file_path: str,
+        cmd: CommandLine
+    ) -> Dict:
+        """
+        Convert and publish a markdown file to Jira
+
+        Args:
+            file_path: Path to the markdown file
+            cmd: CommandLine object containing all configuration options
+
+        Returns:
+            Response data from Jira API
+        """
+        # Read markdown file
+        with open(file_path, 'r', encoding='utf-8') as f:
+            markdown_content = f.read()
+
+        # Extract issue summary
+        issue_summary = self._extract_issue_summary(markdown_content)
+
+        # Process content and extract time estimate
+        processed_content = self._extract_time_estimate_and_content(markdown_content, cmd)
 
         # Convert markdown to Jira markup
-        jira_content = self.convert_markdown_to_jira(markdown_content)
+        jira_content = self.convert_markdown_to_jira(processed_content)
         jira_content_lines = jira_content.split('\n')
         jira_content = '\n'.join(jira_content_lines)
 
