@@ -51,10 +51,16 @@ MARKDOWN_EXTENSIONS = [
     'markdown.extensions.toc',
 ]
 
-# patterns to match the estimated time frame
+# patterns to match the estimated time frame with their extraction functions
 ESTIMATED_TIME_FRAME_PATTERNS = [
-    re.compile(r'(\d+)-(\d+)\s*days'),
-    re.compile(r'(\d+)\s*days'),
+    {
+        'pattern': re.compile(r'(\d+)-(\d+)\s*days'),
+        'extract': lambda match: max(int(match.group(1)), int(match.group(2)))
+    },
+    {
+        'pattern': re.compile(r'(\d+)\s*days'),
+        'extract': lambda match: int(match.group(1))
+    },
 ]
 
 def setup_logging(level: str = "INFO") -> None:
@@ -553,11 +559,11 @@ class JiraMarkdownConverter:
         # get the estimated time from the markdown file
         for idx, l in enumerate(markdown_lines):
             if 'Estimated Time Frame' in l:
-                for pattern in ESTIMATED_TIME_FRAME_PATTERNS:
-                    match = pattern.search(l)
+                for pattern_info in ESTIMATED_TIME_FRAME_PATTERNS:
+                    match = pattern_info['pattern'].search(l)
                     if match:
                         # get the maximum number of days
-                        days = max(int(match.group(1)), int(match.group(2)))
+                        days = pattern_info['extract'](match)
                         estimated_time = f"{days}d"
                         self.logger.info(f"Estimated time: {estimated_time}")
 
