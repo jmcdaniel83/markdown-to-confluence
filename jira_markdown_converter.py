@@ -266,6 +266,9 @@ class JiraMarkdownConverter:
         # Add proper spacing around headers
         markup = self._add_header_spacing(markup)
 
+        # Add proper spacing around bold sections
+        markup = self._add_bold_section_spacing(markup)
+
         return markup
 
     def _convert_list_items(
@@ -333,6 +336,46 @@ class JiraMarkdownConverter:
                     result_lines.append('')
             else:
                 # Non-header lines are added as-is
+                result_lines.append(line)
+
+        # Join lines back together
+        result = '\n'.join(result_lines)
+
+        # Clean up any excessive newlines (more than 2 consecutive)
+        result = re.sub(r'\n{3,}', '\n\n', result)
+
+        return result
+
+    def _add_bold_section_spacing(self, markup: str) -> str:
+        """
+        Add proper spacing around bold sections (*text:*) in Jira markup
+
+        Args:
+            markup: Jira markup content
+
+        Returns:
+            Jira markup with proper bold section spacing
+        """
+        lines = markup.split('\n')
+        result_lines = []
+
+        for i, line in enumerate(lines):
+            # Check if this line is a bold section (starts with * and ends with :)
+            if re.match(r'^\*.*\*\s*$', line):
+                # Check if previous line is empty
+                previous_line_empty = (i == 0) or (lines[i-1].strip() == '')
+
+                if previous_line_empty:
+                    # Previous line is empty, just add the bold section and a newline after
+                    result_lines.append(line)
+                    result_lines.append('')
+                else:
+                    # Previous line has content, add newline before and after
+                    result_lines.append('')
+                    result_lines.append(line)
+                    result_lines.append('')
+            else:
+                # Non-bold section lines are added as-is
                 result_lines.append(line)
 
         # Join lines back together
