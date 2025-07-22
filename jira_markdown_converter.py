@@ -58,7 +58,7 @@ ESTIMATED_TIME_FRAME_PATTERNS = [
         'extract': lambda match: max(int(match.group(1)), int(match.group(2)))
     },
     {
-        'pattern': re.compile(r'(\d+)\s*days'),
+        'pattern': re.compile(r'(\d+)\s*days?'),
         'extract': lambda match: int(match.group(1))
     },
 ]
@@ -476,10 +476,10 @@ class JiraMarkdownConverter:
 
     def update_issue(
         self,
-        issue_key: str,
-        summary: Optional[str] = None,
-        description: Optional[str] = None
-    ) -> Dict:
+                     issue_key: str,
+                     summary: Optional[str] = None,
+                     description: Optional[str] = None
+        ) -> Dict:
         """
         Update an existing issue in Jira
 
