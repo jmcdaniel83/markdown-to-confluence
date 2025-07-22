@@ -476,10 +476,10 @@ class JiraMarkdownConverter:
 
     def update_issue(
         self,
-                     issue_key: str,
-                     summary: Optional[str] = None,
-                     description: Optional[str] = None
-        ) -> Dict:
+        issue_key: str,
+        summary: Optional[str] = None,
+        description: Optional[str] = None
+    ) -> Dict:
         """
         Update an existing issue in Jira
 
