@@ -26,17 +26,49 @@ if [[ "$VIRTUAL_ENV" == "" ]]; then
     fi
 fi
 
-# Configuration - UPDATE THESE VALUES FOR YOUR ENVIRONMENT
-# You can also use environment variables or a config file
-BASE_URL="https://your-domain.atlassian.net"
-USERNAME="your-email@example.com"
-API_TOKEN="your-api-token-here"
-PROJECT_KEY="PROJ"
+# Configuration - pulled from jira_config.json
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null
+then
+    echo "❌ Error: jq is not installed."
+    echo "Please install jq to automatically load configuration from JSON."
+    echo "On macOS: brew install jq"
+    echo "On Debian/Ubuntu: sudo apt-get install jq"
+    echo "On Windows (with Scoop): scoop install jq"
+    exit 1
+fi
+
+# Load configuration from jira_config.json
+CONFIG_FILE="jira_config.json"
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "❌ Error: Configuration file not found: $CONFIG_FILE"
+    echo "Please run 'python jira_config.py --setup' to create it."
+    exit 1
+fi
+
+BASE_URL=$(jq -r '.base_url' "$CONFIG_FILE")
+USERNAME=$(jq -r '.username' "$CONFIG_FILE")
+API_TOKEN=$(jq -r '.api_token' "$CONFIG_FILE")
+PROJECT_KEY=$(jq -r '.project_key' "$CONFIG_FILE")
+
+# Optional configurations from JSON, with fallback to hardcoded if not present in JSON
+ISSUE_TYPE=$(jq -r '.default_issue_type // "Story"' "$CONFIG_FILE")
+PRIORITY=$(jq -r '.default_priority // "Medium"' "$CONFIG_FILE")
+PARENT_KEY=$(jq -r '.default_parent_key // ""' "$CONFIG_FILE") # Default to empty string if not found
+
+# Ensure all critical configurations are loaded
+if [[ -z "$BASE_URL" || -z "$USERNAME" || -z "$API_TOKEN" || -z "$PROJECT_KEY" ]]; then
+    echo "❌ Error: Missing one or more critical configuration values in $CONFIG_FILE."
+    echo "Please ensure base_url, username, api_token, and project_key are set."
+    exit 1
+fi
 
 # Issue configuration - UPDATE THESE FOR YOUR ISSUES
 # Uncomment and configure the issue you want to create/update
-ISSUE_TYPE="Task"
-PRIORITY="Medium"
+#ISSUE_TYPE="Story"
+#PRIORITY="Medium"
 #ASSIGNEE="username"
 #PARENT_KEY="PROJ-123"  # Optional: for creating child issues
 #ISSUE_KEY="PROJ-456"   # Optional: for updating existing issues
@@ -66,7 +98,7 @@ fi
 
 echo "📄 Converting: $MARKDOWN_FILE"
 echo "🏷️  Project: $PROJECT_KEY"
-echo "📋 Issue Type: ${ISSUE_TYPE:-Task}"
+echo "📋 Issue Type: ${ISSUE_TYPE:-Story}"
 echo "⚡ Priority: ${PRIORITY:-Medium}"
 if [[ -n "$ASSIGNEE" ]]; then
     echo "👤 Assignee: $ASSIGNEE"

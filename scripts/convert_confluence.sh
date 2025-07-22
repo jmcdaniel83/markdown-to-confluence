@@ -26,12 +26,39 @@ if [[ "$VIRTUAL_ENV" == "" ]]; then
     fi
 fi
 
-# Configuration - UPDATE THESE VALUES FOR YOUR ENVIRONMENT
-# You can also use environment variables or a config file
-BASE_URL="https://your-domain.atlassian.net/wiki"
-USERNAME="your-email@example.com"
-API_TOKEN="your-api-token-here"
-SPACE_KEY="YOUR_SPACE"
+# Configuration - pulled from confluence_config.json
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null
+then
+    echo "❌ Error: jq is not installed."
+    echo "Please install jq to automatically load configuration from JSON."
+    echo "On macOS: brew install jq"
+    echo "On Debian/Ubuntu: sudo apt-get install jq"
+    echo "On Windows (with Scoop): scoop install jq"
+    exit 1
+fi
+
+# Load configuration from confluence_config.json
+CONFIG_FILE="confluence_config.json"
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "❌ Error: Configuration file not found: $CONFIG_FILE"
+    echo "Please run 'python confluence_config.py --setup' to create it."
+    exit 1
+fi
+
+BASE_URL=$(jq -r '.base_url' "$CONFIG_FILE")
+USERNAME=$(jq -r '.username' "$CONFIG_FILE")
+API_TOKEN=$(jq -r '.api_token' "$CONFIG_FILE")
+SPACE_KEY=$(jq -r '.space_key' "$CONFIG_FILE")
+
+# Ensure all critical configurations are loaded
+if [[ -z "$BASE_URL" || -z "$USERNAME" || -z "$API_TOKEN" || -z "$SPACE_KEY" ]]; then
+    echo "❌ Error: Missing one or more critical configuration values in $CONFIG_FILE."
+    echo "Please ensure base_url, username, api_token, and space_key are set."
+    exit 1
+fi
 
 # Page configuration - UPDATE THESE FOR YOUR PAGES
 # Uncomment and configure the page you want to update
