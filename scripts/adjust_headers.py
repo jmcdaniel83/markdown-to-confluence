@@ -6,6 +6,7 @@ Reduces all headers by 1 level except the first header which remains as the page
 
 import os
 import re
+import argparse
 from pathlib import Path
 
 def adjust_header_levels(markdown_content: str) -> str:
@@ -44,21 +45,19 @@ def adjust_header_levels(markdown_content: str) -> str:
 
     return '\n'.join(adjusted_lines)
 
-def process_child_folder():
-    """Process all markdown files in the child folder"""
-    child_folder = Path('input/pva.1/child')
-
-    if not child_folder.exists():
-        print(f"❌ Child folder not found: {child_folder}")
+def process_folder(folder_path: Path): # Renamed and added folder_path argument
+    """Process all markdown files in the specified folder"""
+    if not folder_path.exists():
+        print(f"❌ Folder not found: {folder_path}")
         return
 
-    markdown_files = list(child_folder.glob('*.md'))
+    markdown_files = list(folder_path.glob('*.md'))
 
     if not markdown_files:
-        print("❌ No markdown files found in child folder")
+        print(f"❌ No markdown files found in {folder_path}")
         return
 
-    print(f"📁 Processing {len(markdown_files)} markdown files in {child_folder}")
+    print(f"📁 Processing {len(markdown_files)} markdown files in {folder_path}")
     print("=" * 50)
 
     for file_path in markdown_files:
@@ -85,4 +84,9 @@ def process_child_folder():
     print("🎉 Header adjustment complete!")
 
 if __name__ == "__main__":
-    process_child_folder()
+    parser = argparse.ArgumentParser(description='Adjust header levels in markdown files.')
+    parser.add_argument('--folder', type=str, required=True, help='The path to the folder containing markdown files to process.')
+    args = parser.parse_args()
+
+    target_folder = Path(args.folder)
+    process_folder(target_folder)
